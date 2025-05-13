@@ -1,0 +1,23 @@
+
+{{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Привет, Django!</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        .center-image {
+            display: block;
+            margin: 0 auto; /* Автоматические отступы слева и справа */
+        }
+    </style>
+</head>
+<body>
+    <h1>Мы вам рады!</h1>
+    <img src="{% static 'images/IMG_2882.jpg' %}" alt="Моя картинка" class="center-image" style="width: 300px; height: auto;">
+</body>
+</html>
+
+
