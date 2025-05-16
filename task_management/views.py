@@ -1,11 +1,23 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import TaskCreateSerializer, TaskListSerializer
-from task_management.models import Task
-from django.db.models import Count
+from django.db.models.functions import ExtractWeekDay
+from django.http import HttpResponse
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.request import Request
+from rest_framework.views import APIView
+from django.db.models import Count, QuerySet
 from django.http import JsonResponse
+from task_management.models import Task, SubTask
+from task_management.serializers import (
+    TaskCreateSerializer,
+    TaskListSerializer,
+    SubTaskSerializer,
+    SubTaskCreateSerializer,
+)
 
 def hello_world(request):
      return HttpResponse("<h1>hello world</h1>")
@@ -17,7 +29,6 @@ def home(request):
      return render(request, 'home.html')
 
 
-# Create your views here.
 @api_view(['POST'])
 def task_create(request):
     serializer = TaskCreateSerializer(data=request.data)
@@ -29,6 +40,96 @@ def task_create(request):
         return Response(serializer.errors,status=404)
 
 
+class SubTaskListCreateAPIView(APIView):
+
+    def get(self, request: Request):
+        queryset: QuerySet[SubTask] = SubTask.objects.all()
+        serializer = SubTaskSerializer(queryset, many=True)
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
+    def post(self, request: Request) -> Response:
+        serializer = SubTaskCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class SubTaskDetailUpdateDeleteView(APIView):
+    def get(self, request: Request, **kwargs) -> Response:
+        try:
+            subtask = SubTask.objects.get(id=kwargs['subtask_id'])
+        except SubTask.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Subtask not found",
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = SubTaskSerializer(subtask)
+
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    def put(self, request: Request, **kwargs) -> Response:
+        try:
+            subtask = SubTask.objects.get(id=kwargs['book_id'])
+        except SubTask.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Subtask not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = SubTaskSerializer(instance=subtask, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        else:
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request: Request, **kwargs) -> Response:
+        try:
+            subtask = SubTask.objects.get(id=kwargs['book_id'])
+        except SubTask.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Subtask not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        subtask.delete()
+
+        return Response(
+            data={
+                "message": "Subtask was deleted successfully."
+            },
+            status=status.HTTP_204_NO_CONTENT
+        )
 @api_view(['GET'])
 def task_list(request):
     tasks = Task.objects.all()
@@ -60,4 +161,3 @@ def task_statistic(request):
         'count_task_by_status': status_counts
     }
     return JsonResponse(response_data)
-# Create your views here.
