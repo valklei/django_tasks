@@ -19,9 +19,9 @@ from django.urls import path
 from django.conf.urls import include
 from task_management import views
 from task_management.views import (
-    task_create,
-    task_list, task_detail,
+    task_detail,
     task_statistic,
+    TaskListAPIView,
     SubTaskListCreateAPIView,
     SubTaskDetailUpdateDeleteView,
 )
@@ -32,11 +32,12 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('hello/', views.hello_world, name='hello_world'),
     path('second/', views.second_view, name='second_view'),
-    path('tasks/create/', task_create),
-    path('tasks/', task_list),
+    path('tasks/', TaskListAPIView.as_view()),
     path('tasks/<int:task_id>/', task_detail),
     path('tasks/statistic/', task_statistic),
+    path('tasks/<int:weekday>', TaskListAPIView.as_view()),
     path('subtasks', SubTaskListCreateAPIView.as_view()),
+    path('subtasks/', SubTaskListCreateAPIView.as_view()),
     path('subtasks/<int:subtask_id>', SubTaskDetailUpdateDeleteView.as_view()),
 ]
 

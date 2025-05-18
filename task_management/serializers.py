@@ -30,7 +30,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
 class TaskListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'status', 'deadline']
+        fields = ['title', 'description', 'status', 'deadline', 'created_at']
 
 class SubTaskSerializer(serializers.ModelSerializer):
     task = serializers.StringRelatedField()
@@ -52,7 +52,6 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = "__all__"
-        fields = "__all__"
 
 
 class SubTaskCreateSerializer(serializers.ModelSerializer):
@@ -70,7 +69,7 @@ class CategoryCreateSerializer(serializers.ModelSerializer):
 
     def validate_name(self, value: str):
         if value:
-            exists_name = Category.objects.filter(name=value).exists()
+            exists_name = Category.objects.filter(name__iexact=value).exists()
             if exists_name:
                 raise serializers.ValidationError(
                     {

@@ -11,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 from django.db.models import Count, QuerySet
 from django.http import JsonResponse
+from rest_framework.pagination import PageNumberPagination
 from task_management.models import Task, SubTask
 from task_management.serializers import (
     TaskCreateSerializer,
@@ -29,27 +30,48 @@ def home(request):
      return render(request, 'home.html')
 
 
-@api_view(['POST'])
-def task_create(request):
-    serializer = TaskCreateSerializer(data=request.data)
+# @api_view(['POST'])
+# def task_create(request):
+#     serializer = TaskCreateSerializer(data=request.data)
+#
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data,status=201)
+#     else:
+#         return Response(serializer.errors,status=404)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data,status=201)
-    else:
-        return Response(serializer.errors,status=404)
 
 
-class SubTaskListCreateAPIView(APIView):
+class SubTaskListCreateAPIView(APIView, PageNumberPagination):
+    page_size = 5
 
-    def get(self, request: Request):
+    def get_queryset(self, request: Request):
+
         queryset: QuerySet[SubTask] = SubTask.objects.all()
-        serializer = SubTaskSerializer(queryset, many=True)
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_200_OK
-        )
 
+        # FILTER PARAMS
+        title = request.query_params.get('title')
+        status_sub = request.query_params.get('status')
+
+        # SORT PARAMS
+        sort_by = 'created_at'
+        sort_order = request.query_params.get('order', 'asc')
+
+        if title:
+            queryset = queryset.filter(
+                task__title=title
+            )
+        if status_sub:
+            queryset = queryset.filter(
+                status=status_sub
+            )
+
+        if sort_order == 'desc':
+            sort_by = f"-{sort_by}"
+
+            queryset = queryset.order_by(sort_by)
+
+        return queryset
 
     def post(self, request: Request) -> Response:
         serializer = SubTaskCreateSerializer(data=request.data)
@@ -64,6 +86,21 @@ class SubTaskListCreateAPIView(APIView):
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    def get_page_size(self, request):
+        page_size = request.query_params.get('page_size')
+
+        if page_size and page_size.isdigit():
+            return int(page_size)
+
+        return self.page_size
+
+    def get(self, request: Request) -> Response:
+        subtasks = self.get_queryset(request=request)
+        results = self.paginate_queryset(queryset=subtasks, request=request, view=self)
+        serializer = SubTaskSerializer(results, many=True)
+
+        return self.get_paginated_response(data=serializer.data)
 
 
 class SubTaskDetailUpdateDeleteView(APIView):
@@ -86,7 +123,7 @@ class SubTaskDetailUpdateDeleteView(APIView):
 
     def put(self, request: Request, **kwargs) -> Response:
         try:
-            subtask = SubTask.objects.get(id=kwargs['book_id'])
+            subtask = SubTask.objects.get(id=kwargs['subtask_id'])
         except SubTask.DoesNotExist:
             return Response(
                 data={
@@ -113,7 +150,7 @@ class SubTaskDetailUpdateDeleteView(APIView):
 
     def delete(self, request: Request, **kwargs) -> Response:
         try:
-            subtask = SubTask.objects.get(id=kwargs['book_id'])
+            subtask = SubTask.objects.get(id=kwargs['subtask_id'])
         except SubTask.DoesNotExist:
             return Response(
                 data={
@@ -130,12 +167,69 @@ class SubTaskDetailUpdateDeleteView(APIView):
             },
             status=status.HTTP_204_NO_CONTENT
         )
-@api_view(['GET'])
-def task_list(request):
-    tasks = Task.objects.all()
-    serializer = TaskListSerializer(tasks, many=True)
-    return Response(serializer.data, status=200)
+# @api_view(['GET'])
+# def task_list(request):
+#     tasks = Task.objects.all()
+#     serializer = TaskListSerializer(tasks, many=True)
+#     return Response(serializer.data, status=200)
 
+from rest_framework.views import APIView
+from rest_framework.request import Request
+from django.db.models import QuerySet
+from .models import Task  # Убедитесь, что Task импортирован из правильного места
+
+class TaskListAPIView(APIView):
+    def get_queryset(self, request: Request) -> QuerySet[Task]:
+        queryset: QuerySet[Task] = Task.objects.all()
+
+        # FILTER PARAMS
+        weekday = request.query_params.get('weekday')
+        if weekday:
+            try:
+                weekday = int(weekday)
+                filtered_queryset = Task.objects.filter(created_at__week_day=weekday)
+                if filtered_queryset.exists():
+                    queryset = filtered_queryset
+            except ValueError:
+                pass  # Оставляем queryset без изменений при ошибке преобразования
+
+        return queryset
+
+    def get(self, request: Request) -> Response:
+        try:
+            queryset = self.get_queryset(request)
+            serializer = TaskListSerializer(queryset, many=True)
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_200_OK
+            )
+        except ValueError:
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def post(self, request: Request):
+        serializer = TaskCreateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+# @api_view(['GET'])
+# def task_list(request):
+#     tasks = Task.objects.all()
+#     serializer = TaskListSerializer(tasks, many=True)
+#     return Response(serializer.data, status=200)
 
 @api_view(['GET'])
 def task_detail(request, task_id):
