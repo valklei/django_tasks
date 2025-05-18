@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from task_management.managers.categories import SoftDeleteManager
+from django.contrib.auth.models import User
 
 
 status_choices = [
@@ -42,6 +43,12 @@ class Task(models.Model):
     status = models.CharField(max_length=100, choices=status_choices, default="New")
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         db_table = "task_manager_task"
@@ -60,6 +67,12 @@ class SubTask(models.Model):
     status = models.CharField(max_length=100, choices=status_choices)
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         db_table = "task_manager_subtask"

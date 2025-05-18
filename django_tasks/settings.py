@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'drf_yasg'
 
 ]
 
@@ -120,11 +121,25 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS':{
+        'Bearer':{
+            'type': 'apiKey',
+            'description': 'TEST DESCRIPTION',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': True
+}
+
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 5,
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication'
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'

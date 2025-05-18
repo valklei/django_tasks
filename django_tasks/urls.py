@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import include
 from rest_framework.routers import DefaultRouter
+from itertools import permutations
 from task_management import views
 from task_management.views import (
     TaskDetailUpdateDeleteView,
@@ -26,10 +27,29 @@ from task_management.views import (
     SubTasklistCreateView,
     SubTaskDetailUpdateDeleteView,
     CategoryViewSet,
+    UserTasksListGenericView,
+    UserSubTasksListGenericView,
 )
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+)
+
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title='Tasks API',
+        default_version='v1',
+        description='Tasks API with permissions',
+        terms_of_service='https://www.google.com/policies/terms/',
+        contact=openapi.Contact(name='Alex Narizhnyi', email='test.email@gmail.com'),
+        license=openapi.License(name='OUR LICENSE', url='https://example.com')
+    ),
+    public=False,
+    permission_classes=[permissions.IsAdminUser],
 )
 
 router = DefaultRouter()
@@ -45,11 +65,14 @@ urlpatterns = [
     path('tasks/<int:task_id>/', TaskDetailUpdateDeleteView.as_view()),
     path('tasks/statistic/', task_statistic),
     path('tasks/<int:weekday>', TaskDetailUpdateDeleteView.as_view()),
-
+    path('tasks-me/', UserTasksListGenericView.as_view()),
     path('subtasks/', SubTasklistCreateView.as_view()),
-    path('subtasks/<int:pk>', SubTaskDetailUpdateDeleteView.as_view()),
+    path('subtasks-me/', UserTasksListGenericView.as_view()),
+    path('subtasks/<int:pk>', UserSubTasksListGenericView.as_view()),
     path('', include(router.urls)),
     path('auth-login/', TokenObtainPairView.as_view()),
     path('auth-refresh-token/', TokenRefreshView.as_view()),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0)),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0)),
 ]
 
