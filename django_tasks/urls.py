@@ -27,6 +27,10 @@ from task_management.views import (
     SubTaskDetailUpdateDeleteView,
     CategoryViewSet,
 )
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 router = DefaultRouter()
 
@@ -45,5 +49,7 @@ urlpatterns = [
     path('subtasks/', SubTasklistCreateView.as_view()),
     path('subtasks/<int:pk>', SubTaskDetailUpdateDeleteView.as_view()),
     path('', include(router.urls)),
+    path('auth-login/', TokenObtainPairView.as_view()),
+    path('auth-refresh-token/', TokenRefreshView.as_view()),
 ]
 

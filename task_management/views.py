@@ -25,6 +25,7 @@ from task_management.serializers import (
     SubTaskCreateSerializer,
     CategorySerializer,
 )
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 def hello_world(request):
      return HttpResponse("<h1>hello world</h1>")
@@ -38,6 +39,9 @@ def home(request):
 
 class SubTasklistCreateView(ListCreateAPIView):
     queryset: QuerySet[SubTask] = SubTask.objects.all()
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -56,6 +60,9 @@ class SubTasklistCreateView(ListCreateAPIView):
 
 class SubTaskDetailUpdateDeleteView(RetrieveUpdateDestroyAPIView):
     queryset: QuerySet[SubTask] = SubTask.objects.all()
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -64,6 +71,9 @@ class SubTaskDetailUpdateDeleteView(RetrieveUpdateDestroyAPIView):
 
 class TaskListCreateView(ListCreateAPIView):
     queryset = Task.objects.all()
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -82,6 +92,9 @@ class TaskListCreateView(ListCreateAPIView):
 
 class TaskDetailUpdateDeleteView(RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
 
     lookup_url_kwarg = 'task_id'
 
@@ -95,6 +108,9 @@ class TaskDetailUpdateDeleteView(RetrieveUpdateDestroyAPIView):
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
 
     @action(
         detail=False,
