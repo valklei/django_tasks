@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db.models.functions import ExtractWeekDay
 from django.http import HttpResponse
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 from django.utils import timezone
 from rest_framework import status, filters
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -14,13 +16,14 @@ from rest_framework.views import APIView
 from django.db.models import Count, QuerySet
 from django.http import JsonResponse
 from rest_framework.pagination import PageNumberPagination
-from task_management.models import Task, SubTask
+from task_management.models import Task, SubTask, Category
 from task_management.serializers import (
     TaskCreateSerializer,
     TaskListSerializer,
     TaskDetailSerializer,
     SubTaskSerializer,
     SubTaskCreateSerializer,
+    CategorySerializer,
 )
 
 def hello_world(request):
@@ -86,6 +89,37 @@ class TaskDetailUpdateDeleteView(RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return TaskDetailSerializer
         return TaskCreateSerializer
+
+
+
+class CategoryViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    @action(
+        detail=False,
+        methods=['get', ],
+        url_path='statistic'
+    )
+    def get_tasks_count_by_category(self, request: Request) -> Response:
+        categories_statistic = Category.objects.annotate(
+            count_tasks=Count('task')
+        )
+
+        data = [
+            {
+                "id": c.id,
+                "name": c.name,
+                "count_tasks": c.count_tasks,
+            }
+            for c in categories_statistic
+        ]
+
+        return Response(
+            data=data,
+            status=status.HTTP_200_OK
+        )
+
 
 ###############################################################
 #

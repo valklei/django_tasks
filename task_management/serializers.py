@@ -61,6 +61,11 @@ class SubTaskCreateSerializer(serializers.ModelSerializer):
         model = SubTask
         fields = "__all__"
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
+
 
 class CategoryCreateSerializer(serializers.ModelSerializer):
     class Meta:
