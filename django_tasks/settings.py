@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'task_management.apps.TaskManagementConfig',
     'rest_framework',
+    'django_filters',
 
 
 
