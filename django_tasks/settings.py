@@ -119,6 +119,65 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'task_management.pagination.CustomCursorPagination',
+}
+logs_dir = BASE_DIR / 'logs'
+logs_dir.mkdir(exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}:{lineno} | {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'formatter': 'verbose',
+        },
+        'db_file':{
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'formatter': 'verbose',
+            'filename': str(BASE_DIR / 'logs/db_logs.log'),
+            'maxBytes': 10_000_000,
+            'backupCount': 5,
+            'encoding': 'utf-8'
+        },
+        'http_file':{
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'formatter': 'verbose',
+            'filename': str(BASE_DIR / 'logs/http_logs.log'),
+            'maxBytes': 10_000_000,
+            'backupCount': 5,
+            'encoding': 'utf-8'
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console', 'db_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'django':{
+            'handlers': ['console', 'http_file'],
+            # 'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'INFO',
+            'propagate': False,
+        }
+    }
+}
+
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 

@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf.urls import include
 from rest_framework.routers import DefaultRouter
 from task_management import views
@@ -34,7 +34,7 @@ router.register(r'categories', CategoryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home, name='home'),
+    #path('', views.home, name='home'),
     path('hello/', views.hello_world, name='hello_world'),
     path('second/', views.second_view, name='second_view'),
     path('tasks/', TaskListCreateView.as_view()),
@@ -44,6 +44,6 @@ urlpatterns = [
 
     path('subtasks/', SubTasklistCreateView.as_view()),
     path('subtasks/<int:pk>', SubTaskDetailUpdateDeleteView.as_view()),
+    path('', include(router.urls)),
 ]
 
-router.urls
