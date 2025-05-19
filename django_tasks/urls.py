@@ -29,6 +29,9 @@ from task_management.views import (
     CategoryViewSet,
     UserTasksListGenericView,
     UserSubTasksListGenericView,
+    LogInAPIView,
+    LogOutAPIView,
+    RegisterUserAPIView,
 )
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -70,6 +73,9 @@ urlpatterns = [
     path('subtasks-me/', UserTasksListGenericView.as_view()),
     path('subtasks/<int:pk>', UserSubTasksListGenericView.as_view()),
     path('', include(router.urls)),
+    path('login/', LogInAPIView.as_view()),
+    path('logout/', LogOutAPIView.as_view()),
+    path('register/', RegisterUserAPIView.as_view()),
     path('auth-login/', TokenObtainPairView.as_view()),
     path('auth-refresh-token/', TokenRefreshView.as_view()),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0)),
